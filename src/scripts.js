@@ -1,8 +1,11 @@
+import CroppingTool from './cropping-tool.js';
+
 const photoFile = document.getElementById('photo-file');
 const selectImage = document.getElementById('select-image');
 const photoPreview = document.getElementById('photo-preview');
 const selectionTool = document.getElementById('selection-tool');
 const cropButton = document.getElementById('crop-image');
+const imageGallery = document.getElementById('image-gallery');
 
 let image;
 
@@ -26,79 +29,16 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-/* Selection Tool */
-
-let
-  startX,
-  startY,
-  relativeStartX,
-  relativeStartY,
-  endX,
-  endY,
-  relativeEndX,
-  relativeEndY,
-  isCropping;
-
-const events = {
-  mouseover(){
-    this.style.cursor = 'crosshair';
-  },
-  mousedown(event){
-    const { clientX, clientY, offsetX, offsetY } = event;
-
-    isCropping = true;
-
-    console.table({
-      'client': [clientX, clientY],
-      'offset': [offsetX, offsetY],
-    });
-
-    startX = clientX;
-    startY = clientY;
-    relativeStartX = offsetX;
-    relativeStartY = offsetY;
-  },
-  mousemove(event){
-    const {clientX, clientY} = event;
-
-    if(!isCropping)
-      return;
-
-    endX = clientX;
-    endY = clientY;
-
-    selectionTool.style.display = 'initial';
-    selectionTool.style.left = `${startX}px`;
-    selectionTool.style.top = `${startY}px`;
-
-    selectionTool.style.width = `${endX - startX}px`;
-    selectionTool.style.height = `${endY - startY}px`;
-  },
-  mouseup(event){
-    const { layerX, layerY } = event;
-    
-    isCropping = false;
-
-    relativeEndX = layerX;
-    relativeEndY = layerY;
-
-    cropButton.style.display = 'initial';
-  },
-}
-
-Object.keys(events).map(eventName => {
-  photoPreview.addEventListener(eventName, events[eventName]);
-})
-
+// Cropping Tool
+var cropTool = new CroppingTool();
 
 /* Canvas */
-
 let canvas = document.createElement('canvas');
 let ctx = canvas.getContext('2d');
 
 function onLoadImage() {
   const { width, height } = image;
-  
+
   canvas.width = width;
   canvas.height = height;
 
@@ -132,29 +72,44 @@ cropButton.onclick = () => {
   ];
 
   const [ actualX, actualY ] = [
-    + (relativeStartX * widthFactor),
-    + (relativeStartY * heightFactor)
+    + (cropTool.relativeStartX * widthFactor),
+    + (cropTool.relativeStartY * heightFactor)
   ];
 
-  /* get from context the cropped image */
+  // Get from context the cropped image
   const croppedImage = ctx.getImageData(actualX, actualY, croppedWidth, croppedHeight);
 
-  // clear canvas context
+  console.log(croppedImage);
+
+  // Clear canvas context
   ctx.clearRect(0, 0, ctx.width, ctx.height);
 
-  /* fixing proportions */
-  image.width = canvas.width = croppedWidth;
-  image.height = canvas.height = croppedHeight;
+  // Fixing proportions
+  canvas.width = croppedWidth;
+  canvas.height = croppedHeight;
 
-  // add cropped image to ctx
+  // Add cropped image to ctx
   ctx.putImageData(croppedImage, 0, 0);
 
-  // hide selection tool
+  // Hide selection tool
   selectionTool.style.display = 'none';
 
-  // hide the crop button
+  // Hide the crop button
   cropButton.style.display = 'none';
 
-  // update the image preview
-  photoPreview.src = canvas.toDataURL()
+  let downloadCurrent = document.createElement('a')
+  downloadCurrent.download = "cropped.jpg";
+  downloadCurrent.href = canvas.toDataURL();
+
+  let newImage = document.createElement('img');
+  newImage.src = canvas.toDataURL();
+  newImage.draggable = false;
+  newImage.classList.add('gallery-img')
+
+  document.getElementById('gallery-wrapper').style.display = 'initial';
+
+  downloadCurrent.append(newImage);
+  imageGallery.append(downloadCurrent);
+
+  onLoadImage();
 }

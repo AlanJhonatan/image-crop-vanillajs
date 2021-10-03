@@ -103,6 +103,21 @@ img {
   height: auto;
 }
 
+footer {
+  margin-top: auto;
+  text-align: center;
+  padding: 3.2rem 0 1.6rem;
+  animation: up 0.4s 0.4s backwards;
+}
+
+footer > a {
+  color: #886CE4;
+}
+
+footer::after {
+  opacity: 0.6;
+  font-size: 0.8rem;
+}
 
 /* Image Crop */
 
@@ -124,4 +139,25 @@ img {
 
 #crop-image {
   display: none;
+}
+
+#gallery-wrapper {
+  display: none;
+}
+
+.cropped-gallery {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.cropped-gallery > img {
+  margin: 1rem 1rem;
+  width: 30%;
+  height: fit-content;
+}
+
+.gallery-img {
+  cursor: pointer;
 }
